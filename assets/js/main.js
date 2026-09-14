@@ -154,25 +154,29 @@
       btn.textContent = 'Sending…';
       if (nlStatus) { nlStatus.textContent = ''; nlStatus.classList.remove('is-error'); }
 
-      fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: encodeForm(nlForm)
-      }).then(function (res) {
-        if (!res.ok) throw new Error('Network response was not ok');
-        btn.textContent = 'Merci ✦';
-        input.value = '';
-        input.placeholder = 'Subscribed, thank you';
-        if (nlStatus) nlStatus.textContent = 'You are on the list.';
-        setTimeout(function () { btn.textContent = prevLabel; btn.disabled = false; }, 2600);
-      }).catch(function () {
-        btn.textContent = prevLabel;
-        btn.disabled = false;
-        if (nlStatus) {
-          nlStatus.textContent = 'Something went wrong — please try again in a moment.';
-          nlStatus.classList.add('is-error');
-        }
-      });
+      // Fallback: if the AJAX submit is blocked for any reason (extension, offline,
+      // odd browser/network quirk), fall back to a real native form POST — that is
+      // the plain HTML mechanism Netlify Forms is built around, so it always works.
+      function nativeFallback() {
+        HTMLFormElement.prototype.submit.call(nlForm);
+      }
+
+      try {
+        fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: encodeForm(nlForm)
+        }).then(function (res) {
+          if (!res.ok) throw new Error('Network response was not ok');
+          btn.textContent = 'Merci ✦';
+          input.value = '';
+          input.placeholder = 'Subscribed, thank you';
+          if (nlStatus) nlStatus.textContent = 'You are on the list.';
+          setTimeout(function () { btn.textContent = prevLabel; btn.disabled = false; }, 2600);
+        }).catch(nativeFallback);
+      } catch (err) {
+        nativeFallback();
+      }
     });
   }
 
