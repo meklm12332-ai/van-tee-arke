@@ -48,6 +48,25 @@ python3 -m http.server 8080   # http://localhost:8080
 - 配色：`assets/css/style.css` 顶部 `:root` 的 `--gold` `--noir` `--paper`
 - 地址 / 邮箱 / 营业时间：Visit 区块里的 `salon@vandeac.example` 等占位符
 
+## 邮箱订阅（Netlify Forms）
+
+页面最下面的订阅表单已经接上 **Netlify Forms**，提交的邮箱会自动存进 Netlify 后台，不需要自己搭数据库。
+
+**怎么看提交记录：**
+1. 打开 https://app.netlify.com → 选中这个站点
+2. 左侧 **Forms** → 会看到一个叫 `newsletter` 的表单
+3. 每条提交（邮箱地址、时间）都在列表里，右上角可以 **导出 CSV**
+4. Forms → 右上角 **Settings** 里可以设置「每次有人提交就发邮件通知我」
+
+**重要 —— 第一次生效前必做：**
+Netlify 是在**部署时**扫描 HTML 里的 `<form data-netlify="true">` 来注册表单的。
+如果你是**改完代码后重新部署**（重新拖文件夹 / `git push`），表单会自动被识别，什么都不用做。
+如果表单在后台一直没出现：确认部署的是最新的 `index.html`，重新触发一次 Deploy。
+
+**注意：**
+- `share.html`（单文件版）不是部署在 Netlify 上的，里面的订阅表单**不会真的保存邮箱**（提交会失败并提示重试），这个文件只用于预览/分享效果，不要用来收集邮箱。
+- 表单里加了一个隐藏的"蜜罐"字段（`bot-field`）用来挡垃圾机器人提交，正常用户看不到、不用管。
+
 ## 说明
 
 内置的产品 / 工艺 / 志刊图片来自 Unsplash（可免费商用），正式上线请替换为你持有版权的素材。

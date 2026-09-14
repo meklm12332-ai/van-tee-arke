@@ -337,10 +337,13 @@
       <span class="eyebrow eyebrow--center reveal">Correspondence</span>
       <h2 class="h-section reveal" data-d="1">Hear about the light before the world does</h2>
       <p class="reveal" data-d="2">A few letters a year — new pieces, private viewings, and the occasional evening in the salon.</p>
-      <form class="nl-form reveal" data-d="2">
-        <input type="email" required placeholder="Your email address" aria-label="Email address" />
+      <form class="nl-form reveal" data-d="2" name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="newsletter" />
+        <p class="nl-hp"><label>Leave this field empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+        <input type="email" name="email" required placeholder="Your email address" aria-label="Email address" />
         <button type="submit">Subscribe</button>
       </form>
+      <p class="nl-status" role="status" aria-live="polite"></p>
     </div>
   </section>
 

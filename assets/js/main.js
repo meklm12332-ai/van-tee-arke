@@ -132,18 +132,47 @@
     img.addEventListener('error', function () { img.style.opacity = '0'; });
   });
 
-  /* ---------- Newsletter (demo only) ---------- */
+  /* ---------- Newsletter -> Netlify Forms ---------- */
   var nlForm = document.querySelector('.nl-form');
+  var nlStatus = document.querySelector('.nl-status');
+  function encodeForm(form) {
+    return Array.prototype.map.call(new FormData(form), function (pair) {
+      return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]);
+    }).join('&');
+  }
   if (nlForm) {
     nlForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var input = nlForm.querySelector('input');
+      var input = nlForm.querySelector('input[type="email"]');
+      var honeypot = nlForm.querySelector('[name="bot-field"]');
       var btn = nlForm.querySelector('button');
       if (!input.value.trim()) return;
-      btn.textContent = 'Merci ✦';
-      input.value = '';
-      input.placeholder = 'Subscribed, thank you';
-      setTimeout(function () { btn.textContent = 'Subscribe'; }, 2600);
+      if (honeypot && honeypot.value) return; // spam bot filled the trap field, silently drop
+
+      btn.disabled = true;
+      var prevLabel = btn.textContent;
+      btn.textContent = 'Sending…';
+      if (nlStatus) { nlStatus.textContent = ''; nlStatus.classList.remove('is-error'); }
+
+      fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: encodeForm(nlForm)
+      }).then(function (res) {
+        if (!res.ok) throw new Error('Network response was not ok');
+        btn.textContent = 'Merci ✦';
+        input.value = '';
+        input.placeholder = 'Subscribed, thank you';
+        if (nlStatus) nlStatus.textContent = 'You are on the list.';
+        setTimeout(function () { btn.textContent = prevLabel; btn.disabled = false; }, 2600);
+      }).catch(function () {
+        btn.textContent = prevLabel;
+        btn.disabled = false;
+        if (nlStatus) {
+          nlStatus.textContent = 'Something went wrong — please try again in a moment.';
+          nlStatus.classList.add('is-error');
+        }
+      });
     });
   }
 

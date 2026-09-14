@@ -280,7 +280,11 @@ section{position:relative}
 .nl-form input{flex:1;background:none;border:0;color:var(--cream);font:inherit;font-size:15px;letter-spacing:.04em}
 .nl-form input::placeholder{color:rgba(244,239,231,.45)}
 .nl-form input:focus{outline:none}
-.nl-form button{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.nl-form button{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);white-space:nowrap;transition:opacity .3s}
+.nl-form button[disabled]{opacity:.5;cursor:default}
+.nl-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.nl-status{max-width:520px;margin:14px auto 0;font-size:12.5px;letter-spacing:.03em;color:rgba(244,239,231,.7);min-height:1.4em}
+.nl-status.is-error{color:#e3a37e}
 
 /* ---------- Footer ---------- */
 .footer{background:var(--noir);color:var(--cream);padding-top:clamp(60px,9vh,120px)}
