@@ -309,6 +309,8 @@ section{position:relative}
 .shop-filter button.is-active{background:var(--noir);color:var(--cream);border-color:var(--noir)}
 
 .shop-grid-wrap{padding-block:clamp(50px,7vh,90px)}
+.shop-empty{text-align:center;color:rgba(31,28,24,.55);font-size:14px;padding:40px 0}
+.shop-empty code{background:var(--paper-2);padding:2px 8px;border-radius:4px;font-size:12.5px}
 .shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(28px,3vw,50px)}
 .product{transition:opacity .35s ease}
 .product.is-hidden{display:none}

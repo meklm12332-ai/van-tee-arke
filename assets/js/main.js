@@ -127,10 +127,12 @@
     }, { passive: true });
   }
 
-  /* ---------- Broken images -> keep gradient placeholder ---------- */
-  document.querySelectorAll('img').forEach(function (img) {
-    img.addEventListener('error', function () { img.style.opacity = '0'; });
-  });
+  /* ---------- Broken images -> keep gradient placeholder ----------
+     Capture-phase + delegation so this also covers images injected
+     later (e.g. the shop grid, rendered from products.json). */
+  document.addEventListener('error', function (e) {
+    if (e.target && e.target.tagName === 'IMG') e.target.style.opacity = '0';
+  }, true);
 
   /* ---------- Newsletter -> Netlify Forms ---------- */
   var nlForm = document.querySelector('.nl-form');
@@ -180,21 +182,85 @@
     });
   }
 
-  /* ---------- Shop filter ---------- */
-  var shopFilter = document.querySelector('.shop-filter');
-  if (shopFilter) {
-    var shopItems = document.querySelectorAll('.product');
-    shopFilter.addEventListener('click', function (e) {
-      var btn = e.target.closest('button');
-      if (!btn) return;
-      shopFilter.querySelectorAll('button').forEach(function (b) { b.classList.remove('is-active'); });
-      btn.classList.add('is-active');
-      var cat = btn.getAttribute('data-cat');
-      shopItems.forEach(function (item) {
-        var show = cat === 'all' || item.getAttribute('data-cat') === cat;
-        item.classList.toggle('is-hidden', !show);
+  /* ---------- Shop: render assets/data/products.json into a filterable grid ----------
+     To add products: edit assets/data/products.json (or regenerate it from the CSV
+     template with scripts/csv_to_products_json.py) — this code needs no changes. */
+  var shopGrid = document.querySelector('.shop-grid');
+  if (shopGrid) {
+    var shopFilterBar = document.querySelector('.shop-filter');
+    var shopEmpty = document.querySelector('.shop-empty');
+
+    var slug = function (s) {
+      return String(s).toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'other';
+    };
+    var esc = function (s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
-    });
+    };
+    var cardHTML = function (p, i) {
+      var img = 'assets/images/' + String(p.image || '').replace(/^assets\/images\//, '');
+      var price = p.price && String(p.price).trim() ? esc(p.price) : 'Price on request';
+      var link = p.link || 'index.html#visit';
+      return '<article class="product reveal" data-d="' + (i % 3) + '" data-cat="' + slug(p.collection || 'Other') + '">' +
+        '<div class="frame"><img src="' + esc(img) + '" alt="' + esc(p.name || '') + '" loading="lazy" /></div>' +
+        '<span class="product__cat">' + esc(p.collection || '') + '</span>' +
+        '<h3>' + esc(p.name || 'Untitled piece') + '</h3>' +
+        '<p class="product__meta">' + esc(p.material || '') + '</p>' +
+        '<div class="product__row">' +
+          '<span class="product__price">' + price + '</span>' +
+          '<a href="' + esc(link) + '" class="product__link">Enquire</a>' +
+        '</div>' +
+      '</article>';
+    };
+
+    fetch('assets/data/products.json')
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (products) {
+        products = Array.isArray(products) ? products : [];
+        if (!products.length) { if (shopEmpty) shopEmpty.hidden = false; return; }
+
+        shopGrid.innerHTML = products.map(cardHTML).join('');
+
+        if (shopFilterBar) {
+          var cats = [];
+          products.forEach(function (p) {
+            var c = p.collection || 'Other';
+            if (cats.indexOf(c) === -1) cats.push(c);
+          });
+          shopFilterBar.innerHTML = ['<button type="button" class="is-active" data-cat="all">All</button>']
+            .concat(cats.map(function (c) { return '<button type="button" data-cat="' + slug(c) + '">' + esc(c) + '</button>'; }))
+            .join('');
+          shopFilterBar.addEventListener('click', function (e) {
+            var btn = e.target.closest('button');
+            if (!btn) return;
+            shopFilterBar.querySelectorAll('button').forEach(function (b) { b.classList.remove('is-active'); });
+            btn.classList.add('is-active');
+            var cat = btn.getAttribute('data-cat');
+            shopGrid.querySelectorAll('.product').forEach(function (item) {
+              item.classList.toggle('is-hidden', !(cat === 'all' || item.getAttribute('data-cat') === cat));
+            });
+          });
+        }
+
+        // reveal-on-scroll needs to run again for these newly injected cards
+        var freshReveals = shopGrid.querySelectorAll('.reveal');
+        if ('IntersectionObserver' in window && !reduce) {
+          var shopIO = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+              if (en.isIntersecting) { en.target.classList.add('is-in'); shopIO.unobserve(en.target); }
+            });
+          }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+          freshReveals.forEach(function (el) { shopIO.observe(el); });
+        } else {
+          freshReveals.forEach(function (el) { el.classList.add('is-in'); });
+        }
+      })
+      .catch(function () {
+        if (shopEmpty) { shopEmpty.hidden = false; shopEmpty.textContent = 'Could not load products right now.'; }
+      });
   }
 
   /* ---------- Year ---------- */
