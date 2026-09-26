@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shop — Van Tee & Arke</title>
+<meta name="description" content="Browse the Van Tee & Arke collections — rings, earrings, necklaces and bracelets from Éternel, Flora, Astral and Lumina." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"></div>
+
+<!-- Nav -->
+<header class="nav" id="top">
+  <div class="nav__inner">
+    <nav class="nav__menu" aria-label="Main">
+      <a href="index.html#collections">Collections</a>
+      <a href="shop.html" class="is-current">Shop</a>
+      <a href="index.html#savoir">Savoir-Faire</a>
+      <a href="index.html#salon">The Salon</a>
+      <a href="index.html#journal">Journal</a>
+    </nav>
+    <a href="index.html" class="nav__brand">Van Tee & Arke</a>
+    <div class="nav__actions">
+      <button class="nav__link-hide" type="button">Search</button>
+      <a href="index.html#visit" class="nav__link-hide">Appointment</a>
+      <a href="index.html#visit" class="nav__link-hide">Visit</a>
+      <button class="nav__burger" type="button" aria-expanded="false">Menu</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile menu -->
+<div class="menu-overlay" aria-hidden="true">
+  <a href="index.html#maison"><small>01</small>The Maison</a>
+  <a href="index.html#collections"><small>02</small>Collections</a>
+  <a href="shop.html"><small>03</small>Shop</a>
+  <a href="index.html#savoir"><small>04</small>Savoir-Faire</a>
+  <a href="index.html#salon"><small>05</small>The Salon</a>
+  <a href="index.html#journal"><small>06</small>Journal</a>
+  <a href="index.html#visit"><small>07</small>Visit</a>
+</div>
+
+<main>
+
+  <!-- Shop hero -->
+  <section class="shop-hero wrap">
+    <span class="eyebrow eyebrow--center reveal">Shop</span>
+    <h1 class="h-section reveal" data-d="1">Pieces from the four collections</h1>
+    <p class="reveal" data-d="2">
+      Each piece is made to order and finished by hand — prices are available on request through
+      the salon. Filter by collection, or write to us about a piece you don't see here.
+    </p>
+  </section>
+
+  <!-- Filter (built automatically from assets/data/products.json) -->
+  <div class="shop-filter reveal" data-d="2" role="tablist" aria-label="Filter by collection"></div>
+
+  <!-- Product grid (rendered by assets/js/main.js from assets/data/products.json) -->
+  <section class="wrap shop-grid-wrap">
+    <p class="shop-empty" hidden>No products yet — add rows to <code>assets/data/products.json</code>.</p>
+    <div class="shop-grid"></div>
+  </section>
+
+  <!-- CTA -->
+  <section class="invite pad-y" style="background:var(--noir)">
+    <div class="wrap">
+      <span class="eyebrow eyebrow--center" style="color:var(--gold-line)">Not sure where to start?</span>
+      <h2 class="h-section">Bring us a reference, a stone, or just an idea</h2>
+      <p>Every piece here can be resized, reimagined in another stone, or used as the starting point for something bespoke.</p>
+      <a href="index.html#visit" class="btn-line btn-line--light">Book a viewing</a>
+    </div>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div>
+        <div class="footer__brand">Van Tee & Arke</div>
+        <p>A high jewellery house built where the light meets the water. Working name and placeholder imagery — replace with your own brand and photography.</p>
+      </div>
+      <div>
+        <h5>Collections</h5>
+        <ul>
+          <li><a href="shop.html">Éternel</a></li>
+          <li><a href="shop.html">Flora</a></li>
+          <li><a href="shop.html">Astral</a></li>
+          <li><a href="shop.html">Lumina</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>The Maison</h5>
+        <ul>
+          <li><a href="index.html#maison">Our story</a></li>
+          <li><a href="index.html#creed">The House Code</a></li>
+          <li><a href="index.html#savoir">Savoir-Faire</a></li>
+          <li><a href="index.html#salon">The Salon</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Visit</h5>
+        <ul>
+          <li><a href="index.html#visit">Appointments</a></li>
+          <li><a href="index.html#visit">Bespoke</a></li>
+          <li><a href="index.html#visit">Care &amp; repair</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year-now>2026</span> Van Tee & Arke — working draft</span>
+      <span>Privacy · Terms · Cookies</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
