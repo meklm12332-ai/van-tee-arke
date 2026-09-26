@@ -180,6 +180,23 @@
     });
   }
 
+  /* ---------- Shop filter ---------- */
+  var shopFilter = document.querySelector('.shop-filter');
+  if (shopFilter) {
+    var shopItems = document.querySelectorAll('.product');
+    shopFilter.addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      shopFilter.querySelectorAll('button').forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      var cat = btn.getAttribute('data-cat');
+      shopItems.forEach(function (item) {
+        var show = cat === 'all' || item.getAttribute('data-cat') === cat;
+        item.classList.toggle('is-hidden', !show);
+      });
+    });
+  }
+
   /* ---------- Year ---------- */
   var yr = document.querySelector('[data-year-now]');
   if (yr) yr.textContent = new Date().getFullYear();
