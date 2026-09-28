@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>产品录入工具（内部使用）</title>
+<link rel="stylesheet" href="assets/css/style.css" />
+<style>
+  body{background:var(--paper);padding:0}
+  .admin{max-width:1040px;margin:0 auto;padding:40px 24px 100px}
+  .admin h1{font-size:1.9rem;font-weight:400;margin-bottom:8px}
+  .admin-note{font-size:13.5px;color:rgba(31,28,24,.62);max-width:70ch;line-height:1.6;margin-bottom:28px;padding:14px 16px;background:var(--paper-2);border-radius:8px}
+  .admin-note b{color:var(--ink)}
+
+  .admin-io{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+  .btn-solid,.file-btn{
+    font-family:var(--font-sans);font-size:12px;letter-spacing:.08em;
+    padding:10px 18px;border-radius:6px;border:1px solid var(--noir);
+    background:var(--noir);color:var(--cream);cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-line-small{
+    font-family:var(--font-sans);font-size:12px;letter-spacing:.08em;
+    padding:10px 18px;border-radius:6px;border:1px solid var(--line);
+    background:transparent;color:var(--ink);cursor:pointer;
+  }
+  .btn-line-small.danger{border-color:#c0685a;color:#a8483a}
+  .file-btn input{display:none}
+
+  fieldset{border:1px solid var(--line);border-radius:10px;padding:24px;margin-bottom:20px}
+  legend{padding:0 8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;color:rgba(31,28,24,.6);margin-bottom:6px}
+  .field input{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;
+    font-family:var(--font-sans);font-size:14px;background:var(--paper);color:var(--ink);
+  }
+  .field input:focus{outline:none;border-color:var(--gold)}
+  .field-row{display:flex;gap:8px;align-items:flex-start}
+  .field-row .field{flex:1}
+  .preview-box{
+    display:flex;gap:16px;align-items:center;margin:16px 0;padding:14px;
+    background:var(--paper-2);border-radius:8px;
+  }
+  .preview-box .frame{width:90px;height:112px;flex:none;background:linear-gradient(150deg,#e7ddcb,#c9ad83 55%,#7c6440);border-radius:4px;overflow:hidden}
+  .preview-box .frame img{width:100%;height:100%;object-fit:cover}
+  .preview-box .meta{font-size:13px;color:rgba(31,28,24,.7);line-height:1.6}
+  .preview-box .meta b{display:block;font-family:var(--font-serif);font-size:1.15rem;color:var(--ink)}
+  .form-actions{display:flex;gap:10px;margin-top:18px}
+
+  .list-head{display:flex;justify-content:space-between;align-items:baseline;margin:36px 0 14px}
+  .list-head h2{font-size:1.2rem;font-weight:400}
+  .list-head span{font-size:12.5px;color:rgba(31,28,24,.55)}
+  .list-empty{padding:40px;text-align:center;color:rgba(31,28,24,.5);border:1px dashed var(--line);border-radius:10px;font-size:14px}
+
+  .row{
+    display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:center;
+    padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--paper);
+  }
+  .row__thumb{width:56px;height:70px;border-radius:4px;overflow:hidden;background:linear-gradient(150deg,#e7ddcb,#c9ad83 55%,#7c6440)}
+  .row__thumb img{width:100%;height:100%;object-fit:cover}
+  .row__info b{font-family:var(--font-serif);font-size:1.05rem;font-weight:400}
+  .row__info span{display:block;font-size:12px;color:rgba(31,28,24,.55);margin-top:2px}
+  .row__tag{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-right:8px}
+  .row__actions{display:flex;gap:6px}
+  .row__actions button{
+    font-size:11px;padding:6px 10px;border-radius:5px;border:1px solid var(--line);background:transparent;cursor:pointer;color:var(--ink)
+  }
+  .row__actions button.danger{color:#a8483a;border-color:#e2b8ae}
+  .row__actions button:disabled{opacity:.3;cursor:default}
+
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+    background:var(--noir);color:var(--cream);padding:12px 22px;border-radius:999px;font-size:13px;
+    opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:640px){
+    .grid2{grid-template-columns:1fr}
+    .row{grid-template-columns:44px 1fr;grid-template-areas:"thumb info" "actions actions"}
+    .row__thumb{grid-area:thumb;width:44px;height:56px}
+    .row__info{grid-area:info}
+    .row__actions{grid-area:actions;margin-top:8px}
+  }
+</style>
+</head>
+<body>
+
+<div class="admin">
+  <h1>产品录入工具</h1>
+  <p class="admin-note">
+    这是一个<b>本地工具</b>，不是网站正式页面，不会被顾客看到、也不会自动同步到网站。
+    用法：① 先把产品照片手动放进 <code>assets/images/</code> 文件夹 ② 在下面填写信息并点"添加"
+    ③ 都录完之后点右上角 <b>下载 products.json</b>，保存时选择覆盖
+    <code>assets/data/products.json</code> ④ 把改动发给 Claude（或自己 git push）就能上线。
+    <br>填写过程会自动保存在这个浏览器里，刷新页面不会丢。
+  </p>
+
+  <div class="admin-io">
+    <label class="file-btn">
+      载入已有 products.json
+      <input type="file" id="loadJson" accept=".json" />
+    </label>
+    <button class="btn-solid" id="downloadJson">⭳ 下载 products.json</button>
+    <button class="btn-line-small" id="copyJson">复制 JSON</button>
+    <button class="btn-line-small danger" id="clearAll">清空列表</button>
+  </div>
+
+  <form id="productForm">
+    <fieldset>
+      <legend id="formLegend">新增产品</legend>
+      <input type="hidden" id="editIndex" value="-1" />
+
+      <div class="grid2">
+        <div class="field">
+          <label>产品名称 *</label>
+          <input type="text" id="f-name" placeholder="Solitaire Halo Ring" required />
+        </div>
+        <div class="field">
+          <label>系列（可以自己起新名字，网站会自动生成对应筛选按钮）</label>
+          <input type="text" id="f-collection" list="collectionsList" placeholder="Éternel" />
+          <datalist id="collectionsList"></datalist>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>材质说明（一句话）</label>
+        <input type="text" id="f-material" placeholder="18K white gold, brilliant-cut diamond" />
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>价格（留空 = 显示 "Price on request"）</label>
+          <input type="text" id="f-price" placeholder="留空即可" />
+        </div>
+        <div class="field">
+          <label>Enquire 按钮跳转（留空用默认预约区）</label>
+          <input type="text" id="f-link" placeholder="index.html#visit" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>图片文件名（这个文件要已经在 assets/images/ 里）</label>
+          <input type="text" id="f-image" placeholder="ring-01.jpg" />
+        </div>
+        <label class="file-btn" style="margin-top:20px">
+          选图预览
+          <input type="file" id="pickImage" accept="image/*" />
+        </label>
+      </div>
+
+      <div class="preview-box">
+        <div class="frame"><img id="previewImg" alt="" /></div>
+        <div class="meta">
+          <b id="previewName">产品预览</b>
+          <span id="previewSub">填写左侧信息，这里会实时显示卡片大致效果</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-solid" id="submitBtn">＋ 添加到列表</button>
+        <button type="button" class="btn-line-small" id="cancelEdit" hidden>取消编辑</button>
+      </div>
+    </fieldset>
+  </form>
+
+  <div class="list-head">
+    <h2>已录入产品</h2>
+    <span><span id="countLabel">0</span> 件 · 排列顺序就是网站上显示的顺序</span>
+  </div>
+  <div id="list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  var STORAGE_KEY = 'vta_admin_products_v1';
+  var products = [];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('productForm');
+  var listEl = $('list');
+  var toastEl = $('toast');
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(products)); } catch (e) {}
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) { products = JSON.parse(raw) || []; return; }
+    } catch (e) {}
+    // no local draft yet — try to preload the live products.json (works when served over http)
+    fetch('assets/data/products.json').then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (data) {
+        if (Array.isArray(data) && data.length && !products.length) {
+          products = data;
+          render();
+          save();
+        }
+      }).catch(function () {});
+  }
+
+  function updateCollectionsList() {
+    var dl = $('collectionsList');
+    var seen = [];
+    products.forEach(function (p) { if (p.collection && seen.indexOf(p.collection) === -1) seen.push(p.collection); });
+    dl.innerHTML = seen.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function render() {
+    updateCollectionsList();
+    $('countLabel').textContent = products.length;
+    if (!products.length) {
+      listEl.innerHTML = '<div class="list-empty">还没有产品，先在上面填表单添加第一个</div>';
+      return;
+    }
+    listEl.innerHTML = products.map(function (p, i) {
+      var img = p.image ? 'assets/images/' + esc(p.image) : '';
+      return (
+        '<div class="row">' +
+          '<div class="row__thumb">' + (img ? '<img src="' + img + '" alt="" onerror="this.style.opacity=0">' : '') + '</div>' +
+          '<div class="row__info">' +
+            '<b>' + esc(p.name || '(未命名)') + '</b>' +
+            '<span><span class="row__tag">' + esc(p.collection || '未分类') + '</span>' + esc(p.material || '') + '</span>' +
+            '<span>' + (p.price ? esc(p.price) : 'Price on request') + ' · ' + esc(p.image || '未指定图片') + '</span>' +
+          '</div>' +
+          '<div class="row__actions">' +
+            '<button type="button" data-act="up" data-i="' + i + '" ' + (i === 0 ? 'disabled' : '') + '>↑</button>' +
+            '<button type="button" data-act="down" data-i="' + i + '" ' + (i === products.length - 1 ? 'disabled' : '') + '>↓</button>' +
+            '<button type="button" data-act="edit" data-i="' + i + '">编辑</button>' +
+            '<button type="button" class="danger" data-act="del" data-i="' + i + '">删除</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  listEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    var i = parseInt(btn.getAttribute('data-i'), 10);
+    var act = btn.getAttribute('data-act');
+    if (act === 'del') {
+      if (!confirm('删除「' + (products[i].name || '') + '」？')) return;
+      products.splice(i, 1);
+    } else if (act === 'up' && i > 0) {
+      var tmp = products[i - 1]; products[i - 1] = products[i]; products[i] = tmp;
+    } else if (act === 'down' && i < products.length - 1) {
+      var tmp2 = products[i + 1]; products[i + 1] = products[i]; products[i] = tmp2;
+    } else if (act === 'edit') {
+      enterEditMode(i);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    save(); render();
+  });
+
+  function enterEditMode(i) {
+    var p = products[i];
+    $('editIndex').value = i;
+    $('f-name').value = p.name || '';
+    $('f-collection').value = p.collection || '';
+    $('f-material').value = p.material || '';
+    $('f-price').value = p.price || '';
+    $('f-link').value = p.link || '';
+    $('f-image').value = p.image || '';
+    updatePreview();
+    $('formLegend').textContent = '编辑：' + (p.name || '');
+    $('submitBtn').textContent = '✓ 保存修改';
+    $('cancelEdit').hidden = false;
+  }
+
+  function exitEditMode() {
+    form.reset();
+    $('editIndex').value = -1;
+    $('previewImg').removeAttribute('src');
+    $('formLegend').textContent = '新增产品';
+    $('submitBtn').textContent = '＋ 添加到列表';
+    $('cancelEdit').hidden = true;
+    updatePreview();
+  }
+
+  $('cancelEdit').addEventListener('click', exitEditMode);
+
+  function updatePreview() {
+    var name = $('f-name').value.trim();
+    var material = $('f-material').value.trim();
+    var price = $('f-price').value.trim();
+    var imageName = $('f-image').value.trim();
+    $('previewName').textContent = name || '产品预览';
+    $('previewSub').textContent = (material || '材质说明会显示在这里') + ' · ' + (price || 'Price on request');
+    var img = $('previewImg');
+    if (imageName) { img.src = 'assets/images/' + imageName; img.onerror = function () { img.removeAttribute('src'); }; }
+    else if (!img.dataset.objectUrl) { img.removeAttribute('src'); }
+  }
+  ['f-name', 'f-material', 'f-price', 'f-image'].forEach(function (id) {
+    $(id).addEventListener('input', updatePreview);
+  });
+
+  $('pickImage').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    $('f-image').value = file.name;
+    var url = URL.createObjectURL(file);
+    var img = $('previewImg');
+    img.dataset.objectUrl = '1';
+    img.src = url;
+    $('previewSub').textContent = '预览用的是你刚选的图（仅本页显示）— 记得把这个文件也拖进 assets/images/ 文件夹';
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('f-name').value.trim();
+    if (!name) { $('f-name').focus(); return; }
+    var product = {
+      name: name,
+      collection: $('f-collection').value.trim(),
+      material: $('f-material').value.trim(),
+      price: $('f-price').value.trim(),
+      image: $('f-image').value.trim(),
+      link: $('f-link').value.trim() || 'index.html#visit'
+    };
+    var idx = parseInt($('editIndex').value, 10);
+    if (idx >= 0) { products[idx] = product; toast('已保存修改'); }
+    else { products.push(product); toast('已添加「' + name + '」'); }
+    save();
+    exitEditMode();
+    render();
+  });
+
+  $('loadJson').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = JSON.parse(reader.result);
+        if (!Array.isArray(data)) throw new Error('not array');
+        products = data;
+        save(); render();
+        toast('已载入 ' + data.length + ' 件产品');
+      } catch (err) {
+        alert('这个文件看起来不是有效的 products.json');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  $('downloadJson').addEventListener('click', function () {
+    var clean = products.map(function (p) {
+      return { name: p.name || '', collection: p.collection || '', material: p.material || '', price: p.price || '', image: p.image || '', link: p.link || 'index.html#visit' };
+    });
+    var blob = new Blob([JSON.stringify(clean, null, 2) + '\n'], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'products.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('已下载 — 保存时覆盖 assets/data/products.json');
+  });
+
+  $('copyJson').addEventListener('click', function () {
+    var clean = products.map(function (p) {
+      return { name: p.name || '', collection: p.collection || '', material: p.material || '', price: p.price || '', image: p.image || '', link: p.link || 'index.html#visit' };
+    });
+    var text = JSON.stringify(clean, null, 2) + '\n';
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast('已复制到剪贴板'); });
+  });
+
+  $('clearAll').addEventListener('click', function () {
+    if (!products.length) return;
+    if (!confirm('清空当前列表里全部 ' + products.length + ' 件产品？（不影响网站上已经上线的内容，只清空这个工具里的草稿）')) return;
+    products = [];
+    save(); render();
+  });
+
+  load();
+  render();
+})();
+</script>
+
+</body>
+</html>
